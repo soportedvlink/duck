@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if dialog --no-lines --title "Activar servidor dns"  --yesno "Quieres activar servidor DNS" 0 0 ;then
+   if dialog --no-lines --title "Tiene los datos"  --yesno "Se ha registrado ya? tiene el nombre de dominio y el token?" 0 0 ;then
+       dominio=`dialog --no-lines --stdout --title "Dominio" --inputbox "Introduce nombre de dominio elegido" 0 0`
+       token=`dialog --no-lines --stdout --title "Tocken" --inputbox "Introduzca tocken asignado" 0 0`
+       if dialog --no-lines --title "Datos recibidos"  --yesno "Los datos recibidos son dominio $dominio y token $token . Desea grabarlos?" 0 0 ;then
+          linea1="echo url="
+          linea2='"https://www.duckdns.org/update?domains='
+          linea3="&token="
+          linea4='&ip=" | curl -k -o ~/duckdns/duck.log -K -'
+          linea="$linea1$linea2$dominio$linea3$token$linea4"
+          mkdir /root/duckdns
+          echo $linea > /root/duckdns/duck.sh
+          chmod +x /root/duckdns/duck.sh
+          c="*/5 * * * * /root/duckdns/duck.sh >/dev/null 2>&1"
+          echo "$c" >> /etc/crontab
+          /root/duckdns/duck.sh
+          cat /root/duckdns/duck.log
+          dialog --no-lines --title "Todo correcto" --msgbox "Ya puedes conectar a tu raspberry usando $dominio.duckdns.org" 0 0
+       fi
+   else
+      dialog --no-lines --title "Paramos un momento" --msgbox "Visita la pagina https://www.duckdns.org/ y sigue el manual " 0 0
+   fi
+else
+   dialog --no-lines --title "$SALIR" --msgbox "Vuelva a ejecutar scrip si cambia de idea" 0 0
+fi
